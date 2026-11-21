@@ -19,6 +19,4 @@ return PORT_STATE_ERROR on a local error case
 port_state_t check_port_state(const struct sockaddr *address, socklen_t addrlen, 
     uint16_t port, int timeout);
 
-static port_state_t error_to_port_state(int error_signal);
-
 #endif

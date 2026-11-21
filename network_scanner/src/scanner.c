@@ -8,13 +8,31 @@
 #include <string.h> //For memcpy use
 #include <netinet/in.h> //For struct sockaddr_in sockaddr_in6 and htons
 
+static port_state_t error_to_port_state(int error_code);
+
+/*
+ * Checks the state of a single TCP port using a non-blocking connect.
+ *
+ * Steps:
+ *  1. Copy the target address and write the port into the copy
+ *     (the port field differs between IPv4 and IPv6).
+ *  2. Create a TCP socket with the same address family.
+ *  3. Switch the socket to non-blocking mode, so that connect()
+ *     returns immediately and we can enforce our own timeout.
+ *  4. Start connect(): an immediate result (success or error in errno)
+ *     is translated directly into a port state.
+ *  5. If the connection is in progress (EINPROGRESS), wait with poll()
+ *     until it completes or the timeout expires (-> filtered).
+ *  6. Read the final result with getsockopt(SO_ERROR) and translate it.
+ *  7. Every path exits through the cleanup label, which closes the socket.
+ */
 port_state_t check_port_state(const struct sockaddr *address, socklen_t addrlen, 
 uint16_t port, int timeout){
 
     
     struct sockaddr_storage address_copy = {0};
     port_state_t result = PORT_STATE_ERROR;
-    int sockfd = -1; //Ask for connexion
+    int sockfd = -1; // Socket used for the connection attempt (-1 = not created yet)
 
     // View the generic storage as an IPv4 address to set the port
     struct sockaddr_in *addr_v4 = (struct sockaddr_in *)&address_copy;
@@ -43,6 +61,7 @@ uint16_t port, int timeout){
         goto cleanup;
     }
 
+    //For we can use ipV4 and iPV6
     sockfd = socket(address->sa_family, SOCK_STREAM, 0);
     if(sockfd == -1){
         goto cleanup;

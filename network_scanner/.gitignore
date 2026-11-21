@@ -1,0 +1,11 @@
+#Fichier executable
+*.exe
+
+#Fichier de compilation
+*.o 
+
+#Build
+build/
+
+#Fichier vs code
+.vscode/

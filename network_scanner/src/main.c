@@ -1,8 +1,9 @@
 #include <stdio.h>
-#include <arpa/inet.h> //for inet_pton
+#include <arpa/inet.h> //for inet_pton 
 #include <netinet/in.h> //for sockaddr_in
 
 #include "scanner.h"
+#include "ports.h"
 
 #define TEST_PORT_OPEN 8000
 #define TEST_PORT_CLOSED 8001
@@ -31,6 +32,9 @@ int main(void){
     port_state_t state;
     const uint16_t ports_array[2] = {TEST_PORT_OPEN, TEST_PORT_CLOSED};
 
+    ports_array_t list;
+
+    //the function converts the caracter string into a network address
     if(inet_pton(AF_INET, "127.0.0.1", &address.sin_addr) !=1 ){
         return 1;
     }
@@ -39,6 +43,20 @@ int main(void){
         state = check_port_state((struct sockaddr *)&address, sizeof(address), ports_array[i], TIMEOUT_MS);
         printf("le port est %u l'etat est %s\n", ports_array[i], port_state_to_string(state));
     }
+
+
+    if(parse_ports("abc,0,100-50", &list) == 0){
+        printf("Le nombre de ports est : %zu\n", list.count);
+        for(size_t i = 0; i < list.count; i++){
+            printf("Port : %u\n", list.ports[i]);
+        }
+    }
+    else {
+        printf("Invalid port specification\n");
+    }
+    
+    free_ports_array(&list);
+
 
     return 0;
 }

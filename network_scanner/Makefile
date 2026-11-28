@@ -1,8 +1,8 @@
 CC  = gcc
 CFLAGS = -Wall -Wextra -Werror -std=c99 -Iinclude
 
-SRC = src/main.c src/scanner.c
-HEADERS = include/scanner.h
+SRC = src/main.c src/scanner.c src/ports.c
+HEADERS = include/scanner.h include/ports.h 
 NAME = network_scanner
 
 .PHONY: all clean re
